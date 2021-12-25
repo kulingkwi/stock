@@ -59,5 +59,20 @@ CREATE TABLE IF NOT EXISTS `tbl_limit_up_down_count`(
    `create_time` DATETIME, 
     PRIMARY KEY ( `id` )
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-CREATE INDEX tbl_limit_up_down_count on tbl_rise_fall_count(date);
+CREATE INDEX index_tbl_limit_up_down_count on tbl_rise_fall_count(date);
+
+CREATE TABLE IF NOT EXISTS `tbl_quotation_event_history` (
+    `id` INT UNSIGNED AUTO_INCREMENT,
+    `msg_id` int NOT NULL,
+    `target` varchar(50) NOT NULL,
+    `event_type` int NOT NULL,
+    `event_timestamp` bigint NOT NULL,
+    `event_timestamp_format` varchar(50) NOT NULL,
+    `good_or_bad` int NOT NULL,
+    `stock_abnormal_event_data` json,
+    `plate_abnormal_event_data` json,
+    `create_time` DATETIME,
+    PRIMARY KEY (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE INDEX index_tbl_quotation_event_history on tbl_quotation_event_history(msg_id);
 
