@@ -76,3 +76,15 @@ CREATE TABLE IF NOT EXISTS `tbl_quotation_event_history` (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX index_tbl_quotation_event_history on tbl_quotation_event_history(msg_id);
 
+create TABLE if not EXISTS `tbl_msg` (
+    `id` int UNSIGNED AUTO_INCREMENT,
+    `msg_id` int not null,
+    `msg_ts` bigint not null,
+    `msg_ts_format` varchar(50) not null,
+    `msg_type` int not null,
+    `msg_title` text not null,
+    `msg_content` json,
+    `create_time` datetime,
+    PRIMARY key (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE INDEX index_tbl_msg on tbl_msg(msg_id);

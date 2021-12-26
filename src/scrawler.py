@@ -136,14 +136,14 @@ def get_quotations_event_data_from_xuangubao(trade_date):
         stop_sign = 1
 
         with db_conn.cursor() as cursor:
-            
+
             delete__sql = "delete from tbl_quotation_event_history where event_timestamp > %d and event_timestamp < %d" % (first_time_stamp, last_time_stamp)
             cursor.execute(delete__sql)
 
             while(stop_sign > 0 and last_time_stamp > first_time_stamp):
                 api_url = "https://flash-api.xuangubao.cn/api/event/history?count=50&types=10001,10005,10003,10002,10006,10004,10012,10014,10009,10010,11000,11001&timestamp=%d" % (last_time_stamp);
                 json_data = json.loads(requests.get(api_url).text)
-                
+                print(json_data)
                 if (json_data["code"] == 20000 and json_data["data"] is not None and  len(json_data["data"]) > 0):
                     for data in json_data["data"]:
                         if (data["event_timestamp"] > first_time_stamp):
@@ -170,12 +170,61 @@ def get_quotations_event_data_from_xuangubao(trade_date):
     print_current_datatime()
     print("End------")
 
+
+#get quotations message
+def get_msg_data_from_xuangubao(trade_date):
+    print("Start to get quotations message data from xuangubao api")
+    print_current_datatime()
+
+    db_conn = get_db_connection()
+
+    try:
+        last_time_stamp = int(round(datetime.timestamp(datetime.strptime(trade_date + "-16:00:00", "%Y-%m-%d-%H:%M:%S"))))
+        first_time_stamp = int(round(datetime.timestamp(datetime.strptime(trade_date + "-09:00:00", "%Y-%m-%d-%H:%M:%S"))))
+        stop_sign = 1
+
+        with db_conn.cursor() as cursor:
+
+            delete__sql = "delete from tbl_msg where msg_ts > %d and msg_ts < %d" % (first_time_stamp, last_time_stamp)
+            cursor.execute(delete__sql)
+
+            last_msg_id = 0
+            while(stop_sign > 0 and last_time_stamp > first_time_stamp):
+                api_url = "https://api.xuangubao.cn/api/pc/msgs?subjids=35&limit=30&msgIdMark=%d" % (last_msg_id);
+                print(api_url)
+                json_data = json.loads(requests.get(api_url).text)
+                if (json_data["NewMsgs"] is not None and  len(json_data["NewMsgs"]) > 0):
+                    for data in json_data["NewMsgs"]:
+                        if (data["CreatedAtInSec"] > first_time_stamp):
+                            insert_sql = "insert into tbl_msg (msg_id, msg_ts, msg_ts_format, msg_type, msg_title, msg_content, create_time) values (%d, %d, '%s', %d, '%s', '%s', %s)" % \
+                            (int(data["Id"]), data["CreatedAtInSec"],  time.strftime('%Y-%m-%d-%H:%M:%S', time.localtime(data["CreatedAtInSec"])), 35, data["Title"], json.dumps(data), 'now()')   
+                            cursor.execute(insert_sql)
+                            
+                    last_msg_id = int(json_data["TailMsgId"])
+                    last_time_stamp = int(json_data["TailMark"])
+                    stop_sign = 1
+
+                else:
+                    stop_sign = 0
+
+            db_conn.commit()
+    except Exception as e:
+        db_conn.rollback()
+        print(e)
+    finally:
+        db_conn.close()
+
+    print_current_datatime()
+    print("End------")
+
+
 def main():
     trade_date = "2021-12-24"
     #get_pcp_distribution_data_from_xuangubao(trade_date)
     #get_rise_fall_data_from_xuangubao(trade_date)
     #get_limit_up_down_data_from_xuangubao(trade_date)
-    get_quotations_event_data_from_xuangubao(trade_date)
+    #get_quotations_event_data_from_xuangubao(trade_date)
+    get_msg_data_from_xuangubao(trade_date)
 
 if __name__ == "__main__":
     main()
