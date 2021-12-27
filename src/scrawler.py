@@ -21,7 +21,7 @@ def get_agent_headers():
     }
 
 def get_db_connection():
-    conn = pymysql.connect(host='localhost', port=3306, user='stock', password='stock', database='stock')
+    conn = pymysql.connect(host='localhost', port=3306, user='stock', password='stock', database='stock', charset='utf8')
     return conn
 
 def print_current_datatime():
