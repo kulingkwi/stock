@@ -64,6 +64,7 @@ CREATE INDEX index_tbl_limit_up_down_count on tbl_rise_fall_count(date);
 CREATE TABLE IF NOT EXISTS `tbl_quotation_event_history` (
     `id` INT UNSIGNED AUTO_INCREMENT,
     `msg_id` int NOT NULL,
+    `date` VARCHAR(10) NOT NULL,
     `target` varchar(50) NOT NULL,
     `event_type` int NOT NULL,
     `event_timestamp` bigint NOT NULL,
@@ -78,6 +79,7 @@ CREATE INDEX index_tbl_quotation_event_history on tbl_quotation_event_history(ms
 
 create TABLE if not EXISTS `tbl_msg` (
     `id` int UNSIGNED AUTO_INCREMENT,
+    `date` VARCHAR(10) NOT NULL,
     `msg_id` int not null,
     `msg_ts` bigint not null,
     `msg_ts_format` varchar(50) not null,

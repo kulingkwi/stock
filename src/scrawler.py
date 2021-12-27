@@ -3,6 +3,7 @@
 
 import os
 import time
+import sys
 from datetime import datetime
 
 import pymysql
@@ -33,17 +34,17 @@ def get_pcp_distribution_data_from_xuangubao(trade_date):
 
     api_url = "https://flash-api.xuangubao.cn/api/market_indicator/pcp_distribution";
     json_data = json.loads(requests.get(api_url).text)
-    print(json_data)
+    print(api_url)
     db_conn = get_db_connection()
 
     try:
         with db_conn.cursor() as cursor:
             data = json_data["data"]
-            delete__sql = "delete from tbl_pcp_distribution where date = %s" % (trade_date)
+            delete__sql = "delete from tbl_pcp_distribution where date = '%s'" % (trade_date)
             insert_sql = "insert into tbl_pcp_distribution(date,total_count, halt_count, limit_down_count, limit_up_count, st_limit_down_count, st_limit_up_count, \
                           range_p0,range_p1,range_p2,range_p3,range_p4,range_p5,range_p6,range_p7,range_p8,range_p9,range_p10,range_p20, \
                           range_m1,range_m2,range_m3,range_m4,range_m5,range_m6,range_m7,range_m8,range_m9,range_m10,range_m20 ,data_ts, create_time)\
-                          values(%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)" % \
+                          values('%s',%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)" % \
                           (trade_date, data['total_count'], data['halt_count'], data['limit_down_count'],data['limit_up_count'], data['st_limit_down_count'], data['st_limit_up_count'],\
                           data['0'],data['1'],data['2'],data['3'],data['4'],data['5'],data['6'],data['7'],data['8'],data['9'],data['10'],data['20'],\
                           data['-1'],data['-2'],data['-3'],data['-4'],data['-5'],data['-6'],data['-7'],data['-8'],data['-9'],data['-10'],data['-20'], data['ts'], 'now()')
@@ -59,7 +60,7 @@ def get_pcp_distribution_data_from_xuangubao(trade_date):
         db_conn.close()
 
     print_current_datatime()
-    print("End------")
+    print("End------\n")
 
 
 # get rise and fall count data
@@ -69,12 +70,12 @@ def get_rise_fall_data_from_xuangubao(trade_date):
 
     api_url = "https://flash-api.xuangubao.cn/api/market_indicator/line?fields=rise_count,fall_count&date="+trade_date;
     json_data = json.loads(requests.get(api_url).text)
-    print(json_data)
+    print(api_url)
     db_conn = get_db_connection()
 
     try:
         with db_conn.cursor() as cursor:
-            delete__sql = "delete from tbl_rise_fall_count where date = %s" % (trade_date)
+            delete__sql = "delete from tbl_rise_fall_count where date = '%s'" % (trade_date)
             cursor.execute(delete__sql)
             for d in json_data["data"]:
                 insert_sql = "insert into tbl_rise_fall_count(date,rise_count,fall_count,data_ts,data_ts_format,create_time) values('%s',%d,%d,%d,'%s',%s)" % \
@@ -90,7 +91,7 @@ def get_rise_fall_data_from_xuangubao(trade_date):
         db_conn.close()
 
     print_current_datatime()
-    print("End------")
+    print("End------\n")
 
 
 # get limit up and down count data
@@ -100,12 +101,12 @@ def get_limit_up_down_data_from_xuangubao(trade_date):
 
     api_url = "https://flash-api.xuangubao.cn/api/market_indicator/line?fields=limit_up_count,limit_down_count&date="+trade_date;
     json_data = json.loads(requests.get(api_url).text)
-    print(json_data)
+    print(api_url)
     db_conn = get_db_connection()
 
     try:
         with db_conn.cursor() as cursor:
-            delete__sql = "delete from tbl_limit_up_down_count where date = %s" % (trade_date)
+            delete__sql = "delete from tbl_limit_up_down_count where date = '%s'" % (trade_date)
             cursor.execute(delete__sql)
             for d in json_data["data"]:
                 insert_sql = "insert into tbl_limit_up_down_count(date,limit_up_count,limit_down_count,data_ts,data_ts_format,create_time) values('%s',%d,%d,%d,'%s',%s)" % \
@@ -121,7 +122,7 @@ def get_limit_up_down_data_from_xuangubao(trade_date):
         db_conn.close()
 
     print_current_datatime()
-    print("End------")
+    print("End------\n")
 
 #get quotations event
 def get_quotations_event_data_from_xuangubao(trade_date):
@@ -143,13 +144,13 @@ def get_quotations_event_data_from_xuangubao(trade_date):
             while(stop_sign > 0 and last_time_stamp > first_time_stamp):
                 api_url = "https://flash-api.xuangubao.cn/api/event/history?count=50&types=10001,10005,10003,10002,10006,10004,10012,10014,10009,10010,11000,11001&timestamp=%d" % (last_time_stamp);
                 json_data = json.loads(requests.get(api_url).text)
-                print(json_data)
+                print(api_url)
                 if (json_data["code"] == 20000 and json_data["data"] is not None and  len(json_data["data"]) > 0):
                     for data in json_data["data"]:
                         if (data["event_timestamp"] > first_time_stamp):
-                            insert_sql = "insert into tbl_quotation_event_history (msg_id, target, event_type, event_timestamp, event_timestamp_format, good_or_bad, stock_abnormal_event_data, plate_abnormal_event_data, create_time) values \
-                            (%d, '%s', %d, %d, '%s', %d, '%s', '%s', %s)" % \
-                            (data["id"], data["target"], data["event_type"], data["event_timestamp"], time.strftime('%Y-%m-%d-%H:%M:%S', time.localtime(data["event_timestamp"])), data["good_or_bad"],
+                            insert_sql = "insert into tbl_quotation_event_history (msg_id, date, target, event_type, event_timestamp, event_timestamp_format, good_or_bad, stock_abnormal_event_data, plate_abnormal_event_data, create_time) values \
+                            (%d, '%s','%s', %d, %d, '%s', %d, '%s', '%s', %s)" % \
+                            (data["id"], time.strftime('%Y-%m-%d', time.localtime(data["event_timestamp"])),data["target"], data["event_type"], data["event_timestamp"], time.strftime('%Y-%m-%d-%H:%M:%S', time.localtime(data["event_timestamp"])), data["good_or_bad"],
                             json.dumps(data["stock_abnormal_event_data"]), json.dumps(data["plate_abnormal_event_data"]), 'now()')   
                             cursor.execute(insert_sql)
                             #print(insert_sql)
@@ -168,7 +169,7 @@ def get_quotations_event_data_from_xuangubao(trade_date):
         db_conn.close()
 
     print_current_datatime()
-    print("End------")
+    print("End------\n")
 
 
 #get quotations message
@@ -196,8 +197,8 @@ def get_msg_data_from_xuangubao(trade_date):
                 if (json_data["NewMsgs"] is not None and  len(json_data["NewMsgs"]) > 0):
                     for data in json_data["NewMsgs"]:
                         if (data["CreatedAtInSec"] > first_time_stamp):
-                            insert_sql = "insert into tbl_msg (msg_id, msg_ts, msg_ts_format, msg_type, msg_title, msg_content, create_time) values (%d, %d, '%s', %d, '%s', '%s', %s)" % \
-                            (int(data["Id"]), data["CreatedAtInSec"],  time.strftime('%Y-%m-%d-%H:%M:%S', time.localtime(data["CreatedAtInSec"])), 35, data["Title"], json.dumps(data), 'now()')   
+                            insert_sql = "insert into tbl_msg (date, msg_id, msg_ts, msg_ts_format, msg_type, msg_title, msg_content, create_time) values ('%s', %d, %d, '%s', %d, '%s', '%s', %s)" % \
+                            (time.strftime('%Y-%m-%d', time.localtime(data["CreatedAtInSec"])), int(data["Id"]), data["CreatedAtInSec"],  time.strftime('%Y-%m-%d-%H:%M:%S', time.localtime(data["CreatedAtInSec"])), 35, data["Title"], json.dumps(data), 'now()')   
                             cursor.execute(insert_sql)
                             
                     last_msg_id = int(json_data["TailMsgId"])
@@ -215,16 +216,38 @@ def get_msg_data_from_xuangubao(trade_date):
         db_conn.close()
 
     print_current_datatime()
-    print("End------")
+    print("End------\n")
 
+
+def default(trade_date):
+    get_pcp_distribution_data_from_xuangubao(trade_date)
+    get_rise_fall_data_from_xuangubao(trade_date)
+    get_limit_up_down_data_from_xuangubao(trade_date)
+    get_quotations_event_data_from_xuangubao(trade_date)
+    get_msg_data_from_xuangubao(trade_date)
 
 def main():
-    trade_date = "2021-12-24"
-    #get_pcp_distribution_data_from_xuangubao(trade_date)
-    #get_rise_fall_data_from_xuangubao(trade_date)
-    #get_limit_up_down_data_from_xuangubao(trade_date)
-    #get_quotations_event_data_from_xuangubao(trade_date)
-    get_msg_data_from_xuangubao(trade_date)
+    trade_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+    if (len(sys.argv) > 1):
+        trade_date = sys.argv[1]
+    if (len(sys.argv) > 2):
+        func = sys.argv[2]
+    else:
+        func = default
+
+    
+    switcher = {
+        "pcp":get_pcp_distribution_data_from_xuangubao, 
+        "rise_fall": get_rise_fall_data_from_xuangubao,
+        "limit_up_down": get_limit_up_down_data_from_xuangubao,
+        "event": get_quotations_event_data_from_xuangubao,
+        "msg": get_msg_data_from_xuangubao}
+
+    f = switcher.get(func, default)
+    print(("trade date: %s, data: %s  \n") % (trade_date, f.__name__))
+    
+    f(trade_date)
+
 
 if __name__ == "__main__":
     main()
