@@ -90,3 +90,16 @@ create TABLE if not EXISTS `tbl_msg` (
     PRIMARY key (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX index_tbl_msg on tbl_msg(msg_id);
+
+create table if not EXISTS `tbl_pool_limit_up_down` (
+    `id` int UNSIGNED AUTO_INCREMENT,
+    `date` varchar(10) not null,
+    `type` varchar(20) not null,
+    `stock_code` varchar(20) not null,
+    `stock_name` varchar(100) ,
+    `reason` text,
+    `content` json,
+    `create_time` datetime,
+    PRIMARY key (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+create index index_tbl_pool_limit_up_down on tbl_pool_limit_up_down (`date`);

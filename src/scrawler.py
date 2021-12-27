@@ -218,6 +218,44 @@ def get_msg_data_from_xuangubao(trade_date):
     print_current_datatime()
     print("End------\n")
 
+# get limit up and down stock pool data
+def get_pool_limit_up_down_data_from_xuangubao(trade_date):
+    print("Start to get limit up and down count data from xuangubao api")
+    print_current_datatime()
+    today = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+
+    limit_up_api_url = "https://flash-api.xuangubao.cn/api/pool/detail?pool_name=limit_up&date="+ ("" if today == trade_date else trade_date);
+    limit_down_api_url = "https://flash-api.xuangubao.cn/api/pool/detail?pool_name=limit_down&date="+ ("" if today == trade_date else trade_date);
+    limit_up_broken_api_url = "https://flash-api.xuangubao.cn/api/pool/detail?pool_name=limit_up_broken&date="+ ("" if today == trade_date else trade_date);
+    limit_down_broken_api_url = "https://flash-api.xuangubao.cn/api/pool/detail?pool_name=limit_down_broken&date="+ ("" if today == trade_date else trade_date);
+    resp_data = [{"type": "limit_up", "url": limit_up_api_url, "stock_list": json.loads(requests.get(limit_up_api_url).text)}, 
+                    {"type": "limit_down", "url": limit_down_api_url, "stock_list": json.loads(requests.get(limit_down_api_url).text)},\
+                    {"type": "limit_up_broken", "url": limit_up_broken_api_url, "stock_list": json.loads(requests.get(limit_up_broken_api_url).text)}, 
+                    {"type": "limit_down_broken", "url": limit_down_broken_api_url, "stock_list": json.loads(requests.get(limit_down_broken_api_url).text)}]
+    db_conn = get_db_connection()
+
+    try:
+        with db_conn.cursor() as cursor:
+            for data in resp_data:
+                print("type: %s   url: %s" % (data["type"], data["url"]))
+                delete__sql = "delete from tbl_pool_limit_up_down where date = '%s' and type = '%s'" % (trade_date, data["type"])
+                cursor.execute(delete__sql)
+                for d in data["stock_list"]["data"]:
+                    if d is not None and len(d) > 0 :
+                        insert_sql = "insert into tbl_pool_limit_up_down(date,type,stock_code,stock_name,reason, content,create_time) values('%s', '%s','%s','%s','%s','%s',%s)" % \
+                                (trade_date, data["type"], d['symbol'], d['stock_chi_name'], (d["surge_reason"]["stock_reason"] if d["surge_reason"] is not None and d["surge_reason"]["stock_reason"] is not None else ""), json.dumps(d), 'now()')
+                        cursor.execute(insert_sql)
+            
+            db_conn.commit()
+        
+    except Exception as e:
+        db_conn.rollback()
+        print(e)
+    finally:
+        db_conn.close()
+
+    print_current_datatime()
+    print("End------\n")
 
 def default(trade_date):
     get_pcp_distribution_data_from_xuangubao(trade_date)
@@ -225,6 +263,7 @@ def default(trade_date):
     get_limit_up_down_data_from_xuangubao(trade_date)
     get_quotations_event_data_from_xuangubao(trade_date)
     get_msg_data_from_xuangubao(trade_date)
+    get_pool_limit_up_down_data_from_xuangubao(trade_date)
 
 def main():
     trade_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
@@ -241,7 +280,8 @@ def main():
         "rise_fall": get_rise_fall_data_from_xuangubao,
         "limit_up_down": get_limit_up_down_data_from_xuangubao,
         "event": get_quotations_event_data_from_xuangubao,
-        "msg": get_msg_data_from_xuangubao}
+        "msg": get_msg_data_from_xuangubao,
+        "pool_limit_up_down": get_pool_limit_up_down_data_from_xuangubao}
 
     f = switcher.get(func, default)
     print(("trade date: %s, data: %s  \n") % (trade_date, f.__name__))
