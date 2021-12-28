@@ -70,8 +70,8 @@ CREATE TABLE IF NOT EXISTS `tbl_quotation_event_history` (
     `event_timestamp` bigint NOT NULL,
     `event_timestamp_format` varchar(50) NOT NULL,
     `good_or_bad` int NOT NULL,
-    `stock_abnormal_event_data` json,
-    `plate_abnormal_event_data` json,
+    `stock_abnormal_event_data` longtext,
+    `plate_abnormal_event_data` longtext,
     `create_time` DATETIME,
     PRIMARY KEY (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -85,7 +85,7 @@ create TABLE if not EXISTS `tbl_msg` (
     `msg_ts_format` varchar(50) not null,
     `msg_type` int not null,
     `msg_title` text not null,
-    `msg_content` json,
+    `msg_content` longtext,
     `create_time` datetime,
     PRIMARY key (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -98,7 +98,7 @@ create table if not EXISTS `tbl_pool_limit_up_down` (
     `stock_code` varchar(20) not null,
     `stock_name` varchar(100) ,
     `reason` text,
-    `content` json,
+    `content` longtext,
     `create_time` datetime,
     PRIMARY key (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
