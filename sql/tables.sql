@@ -61,6 +61,29 @@ CREATE TABLE IF NOT EXISTS `tbl_limit_up_down_count`(
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX index_tbl_limit_up_down_count on tbl_rise_fall_count(date);
 
+CREATE TABLE IF NOT EXISTS `tbl_limit_up_broken_ratio`(
+   `id` INT UNSIGNED AUTO_INCREMENT,
+   `date` VARCHAR(10) NOT NULL,
+   `limit_up_broken_count` int NOT NULL,
+   `limit_up_broken_ratio` double(6, 4) NOT NULL,
+   `data_ts`  bigint not NUll,
+   `data_ts_format` varchar(50) not NULL,
+   `create_time` DATETIME, 
+    PRIMARY KEY ( `id` )
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE INDEX index_tbl_limit_up_broken_ratio on tbl_limit_up_broken_ratio(date);
+
+CREATE TABLE IF NOT EXISTS `tbl_yesterday_limit_up_avg_pcp`(
+   `id` INT UNSIGNED AUTO_INCREMENT,
+   `date` VARCHAR(10) NOT NULL,
+   `avg_pcp` double(6, 4) NOT NULL,
+   `data_ts`  bigint not NUll,
+   `data_ts_format` varchar(50) not NULL,
+   `create_time` DATETIME, 
+    PRIMARY KEY ( `id` )
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE INDEX index_tbl_yesterday_limit_up_avg_pcp on tbl_yesterday_limit_up_avg_pcp(date);
+
 CREATE TABLE IF NOT EXISTS `tbl_quotation_event_history` (
     `id` INT UNSIGNED AUTO_INCREMENT,
     `msg_id` int NOT NULL,
